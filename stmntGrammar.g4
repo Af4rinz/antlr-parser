@@ -40,8 +40,8 @@ forRange: FOR '(' VAR IN ((VAR|NUMBER)':'(VAR|NUMBER)) STEP (NUMBER|VAR) ')' (('
 //iterative for using var IN iterator format
 forIt: FOR '(' AUTO VAR IN VAR ')' (('{' statement* '}') | statement);
 
-multiComment: '/*' .*? '*/' -> skip; //skip multiline comments in /* .. */ format
-commentLine: '##'  ~[\n\r]* -> skip; //skip single-line comments starting with ##
+LCOMMENT: '#' ~[\r\n]* '\r'? '\n' -> skip; //skip single-line comments starting with #
+MCOMMENT: '/*' .*? '*/' -> skip; //skip multiline comments in  format
 WS: [ \t\r]+ -> skip; // skip spaces and tabs  
 
 
