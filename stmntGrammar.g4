@@ -21,57 +21,85 @@ statement:
 	| doWhileLoop
 	| switchStatement
 	| defStatement
+	| incDecStatement
+	| assignStatement
 	;
 
 defStatement: (LET | CONST) (INT | FLOAT | BOOL) '[]'? varAssign (',' varAssign)* ';'?; //variable definition, supporting multi-definitions
+
 classDef: CLASS VAR (EXTENDS VAR)? implementExp? '{' (defStatement | function)* '}';
-function: CONST? (VOID | INT | FLOAT | BOOL) VAR '(' (((INT | FLOAT | BOOL) VAR) (','(INT | FLOAT | BOOL) VAR)*)? ')' '{' statement  (RETURN (exp)? ';')? '}' ;
+
+function: CONST? (VOID | INT | FLOAT | BOOL) VAR '(' (((INT | FLOAT | BOOL) VAR) (','(INT | FLOAT | BOOL) VAR)*)? ')' 
+	'{' statement  (RETURN (exp)? ';')? '}' ;
+
 ifStatement:
 	IF '(' compExp ')' (('{' statement* '}') | statement) 
 		(ELSE (('{' statement* '}') | statement))?;
+
 whileLoop: WHILE '(' compExp (logicOp compExp) ')' (('{' statement* '}') | statement);
 doWhileLoop: DO (('{' statement* '}') | statement) WHILE '(' compExp (logicOp compExp) ')' ';'?;
+
 //switch statement include 0+ cases and may include one default case
 switchStatement: SWITCH '(' VAR ')' '{' (CASE ('\'' (VAR | NUMBER) '\'') ':' (('{' statement* '}') | statement+) (BREAK ';'?)?)* 
 	(DEFAULT ':'(('{' statement* '}') | statement+) (BREAK ';'?)?)? '}';
 
 //range-based for, range is given in init:fin format with steps
 forRange: FOR '(' VAR IN ((VAR|NUMBER)':'(VAR|NUMBER)) STEP (NUMBER|VAR) ')' (('{' statement* '}') | statement);
+
 //iterative for using var IN iterator format
 forIt: FOR '(' AUTO VAR IN VAR ')' (('{' statement* '}') | statement);
 
+//single inc/decrement expression e.g. --j
+incDecStatement: incDecExp ';'? ;
+assignStatement: VAR assignOp (SCIENTIFIC_NUMBER | genExp) ';'?;
+
+
 LCOMMENT: '#' ~[\r\n]* '\r'? '\n' -> skip; //skip single-line comments starting with #
-MCOMMENT: '/*' .*? '*/' -> skip; //skip multiline comments in  format
-WS: [ \t\r]+ -> skip; // skip spaces and tabs  
+MCOMMENT: '/*' .*? '*/' -> skip; //skip multiline comments in /*..*/ format
+WS: [ \t\r\n]+ -> skip; // skip spaces and tabs  
 
 
 /*----- EXPRESSIONS -----*/
 
 /*parts*/
+//u- signifies unary operator
 powOp: '**';
 multiDivOp: '*' | '/' | '%' | '//' ;
 addSubOp: '+' | '-' ;
+uArithOp: '-';
 arithOp: powOp | addSubOp | multiDivOp;
-bitOp: '<<' | '>>' | '~' | '^' | '|' | '&';
-logicOp: AND | OR | NOT | '&&' | '||';
+bitOp: '<<' | '>>' | '^' | '|' | '&';
+uBitOp: '~';
+logicOp: AND | OR | '&&' | '||';
+uLogicOp: NOT;
 assignOp: (arithOp)? '='; //allows for expressions such as i += 2
 compOp: '>' | '<' | '>=' | '<=' | '==' | '!=';
 
 /*exps*/
-exp: (VAR | NUMBER) (arithOp (VAR | NUMBER))*;
-parExp: '(' exp ')'; //expression in paranthesis
-compExp: (VAR | NUMBER) (compOp (exp | parExp))?;//comparisons, may include single vars
-arithExp: VAR assignOp (exp | parExp); //normal arithmetics
-incDecExp: ('++' | '--')? VAR ('++' | '--')?; //inc/decrement
-varAssign: VAR ('=' (VAR | NUMBER | CONSTANT | SCIENTIFIC_NUMBER)); //variable assignment
-implementExp: (IMPLEMENTS VAR) (',' IMPLEMENTS VAR)*; //'implements' expression, supporting multi
-conditionExp:'!'? compExp ('!'? (logicOp | bitOp) compExp)*;
+
+exp: (uBitOp | uArithOp)? (VAR | NUMBER) (arithOp (VAR | NUMBER))*;
+//expression in parentheses
+parExp: '(' exp | ((uBitOp|uArithOp)?(VAR|NUMBER)) ')'; 
+//combination of expression sentences with and without ()
+genExp: (exp | parExp) ((powOp | multiDivOp | addSubOp | bitOp | logicOp)(parExp|exp))*;
+//comparisons, may include single vars or non-comparative expressions
+compExp: (exp | parExp) (compOp (exp | parExp))?;
+//normal arithmetics
+arithExp: VAR assignOp (exp | parExp); 
+//inc/decrement
+incDecExp: ('++' | '--')? VAR ('++' | '--')?; 
+//variable assignment
+varAssign: VAR ('=' (VAR | NUMBER | CONSTANT | SCIENTIFIC_NUMBER | genExp)); 
+//'implements' expression, supporting multi
+implementExp: (IMPLEMENTS VAR) (',' IMPLEMENTS VAR)*; 
+conditionExp:(uLogicOp)? compExp ( (logicOp | bitOp) (uLogicOp)? compExp)*;
 
 
 
 /*----- RESERVED KEYWORDS -----*/
-//defined before the general word/var form to take precedence in parsing i.e. the keywords will
-// not be recognised as variables/words
+//defined before the general word/var form to take 
+//precedence in parsing i.e. the keywords will
+//not be recognised as variables/words
 fragment REQUIRE: 'require';
 fragment CONST: 'const';
 fragment FROM: 'from';
@@ -103,15 +131,17 @@ fragment NOT: 'not';
 fragment AND: 'and';
 fragment OR: 'or';
 fragment BOOL: 'boolean';
-
+KEYWORD: REQUIRE | CONST | FROM | CLASS | EXTENDS | IMPLEMENTS | LET | INT | FLOAT | VOID
+| TRUE | FALSE | IOTA | NULL | RETURN | IN | FOR | IF | STEP | AUTO | WHILE | SWITCH |CASE |DEFAULT
+|BREAK | ELSE | DO | NOT | OR | AND | BOOL;
 
 /*----- GENRAL COMPONENTS -----*/
 fragment UPPERCASE: [A-Z];
 fragment LOWERCASE: [a-z];
 fragment DIGIT: [0-9];
 fragment LETTER: UPPERCASE | LOWERCASE;
-WORD: (LETTER | '_') (LETTER | '_' | NUMBER)*;
-VAR: (LETTER | '_') (LETTER | '_' | NUMBER)+;
+WORD: (LETTER | '_')(LETTER | '_' | NUMBER)*;
+VAR: (LETTER | '_')(LETTER | '_' | NUMBER)+;
 //variables are 2+ characters, not starting with numerals
 NUMBER:  DIGIT+ ([.,] DIGIT+)?;
 SCIENTIFIC_NUMBER: DIGIT+ ([.,] DIGIT+)? ('e' NUMBER)?;
