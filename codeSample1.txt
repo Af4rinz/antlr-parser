@@ -1,0 +1,75 @@
+cv = require ocv;
+lib = from libs require lib;
+
+class Main extends libs implements cv, ocv {
+    const boolean isTrue = true;
+    const int some_int = 4, some_int2 = 5;
+    let float myVar, myVar11 = some_int * (3.4 + 2);
+
+    void foo = (int inp, boolean bool) =>
+    {
+        let int[] arr;
+        
+            # test block
+            switch (bool){
+                case true :
+                    isTrue = ~false;
+                    break;
+                case false:
+                    isTrue = ~~false;
+                default:
+                    # write code here
+                    break;
+            }
+        
+        /*test
+        multi
+        line
+        comment
+        */
+        for (auto obj in Objects)
+            getObject (obj, it);
+        do {
+            doSth();
+            doMore (   1, 2, 3,
+            4);
+            isTrue = 2 - iota ** 3 << 
+                2 - (8%4) <= 2;
+        } while (not 3.2 - var <= 23 //2 and false)
+        for (it in 3 : 43 step 1.1){
+            let int myVar3 = 2.3e-4;
+            myVar = myVar3;
+            # do some stuff
+            callFoo();
+        }
+
+        if (this == false or that != true) {
+            this = not that;
+        }
+        else
+            that = this;
+        
+        /*
+        another
+        multiline
+        
+        
+        */
+        #or single line
+        #comment
+        var ++;
+        -- var;
+
+        return nada;
+    }
+
+}
+
+class Test {};
+
+let float global;
+const boolean[] trues, falses;
+
+class classy extends extended {
+    # class notes
+}

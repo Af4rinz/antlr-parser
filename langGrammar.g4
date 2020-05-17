@@ -1,6 +1,6 @@
 grammar langGrammar;
 
-program: (preProcess)*(classDec | varDec)*;
+program: (preProcess)* (classDec | varDec)*;
 
 preProcess: (
 		(VAR '=' REQUIRE VAR)
@@ -15,25 +15,26 @@ statement: assignExp';'
 	| ifStatement
 	| switchStatement
 	| doWhileLoop
-	| block
-
+	| incDecStatement
+	| (functionCall';') 
 ;
 classDec: CLASS VAR (EXTENDS VAR)? implementExp? '{' (varDec | function | assignExp)* '}' ';'?;
 
-function: (TYPE | VOID) VAR '=' '(' ((TYPE)VAR (',' TYPE VAR)*)? ')' '=>' '{' statement* 
-	(RETURN (exp)?';') '}' ';'?;
+function: (TYPE | VOID) VAR '=' '(' ((TYPE) VAR (',' TYPE VAR)* )? ')' '=>' '{' statement* 
+	(RETURN exp? ';') '}' ';'?;
 
+functionCall: VAR '(' (exp (',' exp)*)? ')';
 implementExp: IMPLEMENTS VAR (',' VAR)*;
 
-varDec: (LET | CONST) (TYPE) '[]'? varAssign (',' varAssign)* (';');
-varAssign: VAR ((',' VAR)* '=' (SCIENTIFIC_NUMBER | exp))?; //only to use in var declaration
+varDec: (LET | CONST) TYPE ('[]')? varAssign (',' varAssign)* (';');
+varAssign: VAR (('=' VAR)* '=' (SCIENTIFIC_NUMBER | exp ))?; //only to use in var declaration
 
-//support for code blocks in program
-block: '{' statement* '}';
+// //support for code blocks in program
+// block: '{' statement* '}';
 
 //switch statement include 0+ cases and may include one default case
-switchStatement: SWITCH '(' VAR ')' '{' (CASE ('\'' (VAR | NUMBER) '\'') ':' (('{' statement* '}') | statement+) (BREAK ';')?)* 
-	(DEFAULT ':'(('{' statement* '}') | statement+) (BREAK ';'?)?)? '}';
+switchStatement: SWITCH '(' VAR ')' '{' (CASE (('\'' VAR '\'') | NUMBER | BOOL) ':' (('{' statement* '}') | statement*) (BREAK ';')?)* 
+	(DEFAULT ':'(('{' statement* '}') | statement*) (BREAK ';')?)? '}';
 
 //range-based for, range is given in init:fin format with steps
 forRange: FOR '(' VAR IN ((VAR|NUMBER)':'(VAR|NUMBER)) STEP (NUMBER|VAR) ')' (('{' statement* '}') | statement);
@@ -43,13 +44,13 @@ forIt: FOR '(' AUTO VAR IN VAR ')' (('{' statement* '}') | statement);
 
 whileLoop: WHILE '(' exp ')' (('{' statement* '}') | statement);
 
-doWhileLoop: DO (('{' statement* '}') | statement) WHILE '(' exp ')' ';';
+doWhileLoop: DO (('{' statement* '}') | statement) WHILE '(' exp ')';
 
 ifStatement:
 	IF '(' exp ')' (('{' statement* '}') | statement) 
-		(ELSE (('{' statement* '}') | statement))?;
+		( ELSE (('{' statement* '}') | statement))? ;
 
-incDecStatement: (('--' | '++') VAR) | (VAR ('--' | '++')) ';';
+incDecStatement: ((('--' | '++') VAR) | (VAR ('--' | '++'))) ';';
 
 
 
@@ -67,13 +68,15 @@ exp: '(' exp ')'
 	| exp ('^' | '|' | '&') exp //bit op
 	| exp ('==' | '!=' | '<>') exp //equality op
 	| exp ('>' | '<' | '>=' | '<=') exp //inequality op
+	| NOT exp
+	| exp (OR | AND) exp
     | atom;
-atom: (('-' | '+')? (NUMBER | VAR)) | TRUE | FALSE | IOTA;
+atom: (('-' | '+')? (NUMBER | VAR)) | BOOL | IOTA | functionCall;
 
-WS: [ \t\r\n]+ -> skip; // skip spaces and tabs  
 // NL: [\r\n]+;
-LCOMMENT: '#' ~[\r\n]* '\r'?'\n' -> skip; //skip single-line comments starting with #
+LCOMMENT: '#' ~[\r\n]*  -> skip; //skip single-line comments starting with #
 MCOMMENT: '/*' .*? '*/' -> skip; //skip multiline comments in /*..*/ format
+WS: [ \t\r\n]+ -> skip; // skip spaces and tabs  
 
 
 /*----- OPERATORS -----*/
@@ -90,13 +93,12 @@ MCOMMENT: '/*' .*? '*/' -> skip; //skip multiline comments in /*..*/ format
 // ASSIGN_OP: (ARITH_OP)? '='; //allows for expressions such as var += 2
 // COMP_OP: '==' | '!=' | '<>';
 // GLT_OP: '>' | '<' | '>=' | '<=';
-// INC_DEC: '--' | '++';
 
 /*----- RESERVED KEYWORDS -----*/
 //defined before the general word/var form to take 
 //precedence in parsing i.e. the keywords will
 //not be recognised as variables/words
-TYPE: BOOL | INT | FLOAT;
+TYPE: BOOLEAN | INT | FLOAT;
 REQUIRE: 'require';
 CONST: 'const';
 FROM: 'from';
@@ -107,8 +109,8 @@ LET: 'let';
 INT: 'int';
 FLOAT: 'float';
 VOID: 'void';
-TRUE: 'true';
-FALSE: 'false';
+// TRUE: 'true';
+// FALSE: 'false';
 IOTA: 'iota';
 NULL: 'null' | 'NULL';
 RETURN: 'return';
@@ -127,15 +129,17 @@ DO: 'do';
 NOT: 'not';
 AND: 'and';
 OR: 'or';
-BOOL: 'boolean';
+BOOLEAN: 'boolean';
+BOOL: 'true' | 'false';
 
 /*----- GENRAL COMPONENTS -----*/
 fragment UPPERCASE: [A-Z];
 fragment LOWERCASE: [a-z];
 fragment DIGIT: [0-9];
-fragment LETTER: UPPERCASE | LOWERCASE;
+fragment LETTER: [a-zA-Z];
 //variables are 2+ characters, not starting with numerals
 VAR: (LETTER | '_')(LETTER | '_' | NUMBER)+;
 NUMBER: DIGIT+([.,] DIGIT+)?;
-SCIENTIFIC_NUMBER: NUMBER ('e' NUMBER);
-CONSTANT: TRUE | FALSE | NULL | IOTA;
+SCIENTIFIC_NUMBER: NUMBER ('e' ('+'|'-')? NUMBER);
+
+
