@@ -1,0 +1,20 @@
+class CommentTest implements comments {
+    float foo = () => {
+        let float pi = 3.1415;
+
+        /*
+        LOREM
+        ipsum
+
+        dolor
+
+
+        sit*/
+
+
+
+        pi2 = pi ** 2;
+        pi2 *= pi;
+        return pi2;
+    }
+}
