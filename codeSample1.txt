@@ -9,7 +9,7 @@ class Main extends libs implements cv, ocv {
     void foo = (int inp, boolean bool) =>
     {
         let int[] arr;
-        
+            {
             # test block
             switch (bool){
                 case true :
@@ -29,6 +29,7 @@ class Main extends libs implements cv, ocv {
         */
         for (auto obj in Objects)
             getObject (obj, it);
+        }
         do {
             doSth();
             doMore (   1, 2, 3,
