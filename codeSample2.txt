@@ -16,6 +16,7 @@ class CommentTest implements comments {
         {
         pi2 = pi ** 2;
         pi2 *= pi;
+        var = (1 - (8+7) * temp) / ((var - 2));
         }
         return pi2;
     }
