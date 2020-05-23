@@ -1,6 +1,6 @@
 grammar langGrammar;
 
-program: (preProcess)* (classDec | varDec)*;
+program: (preProcess)* (classDec | varDec)* EOF;
 
 preProcess: (
 		(VAR '=' REQUIRE VAR)
@@ -17,6 +17,7 @@ statement: assignExp';'
 	| doWhileLoop
 	| incDecStatement
 	| (functionCall';') 
+	| block
 ;
 classDec: CLASS VAR (EXTENDS VAR)? implementExp? '{' (varDec | function | assignExp)* '}' ';'?;
 
@@ -29,8 +30,8 @@ implementExp: IMPLEMENTS VAR (',' VAR)*;
 varDec: (LET | CONST) TYPE ('[]')? varAssign (',' varAssign)* (';');
 varAssign: VAR (('=' VAR)* '=' (SCIENTIFIC_NUMBER | exp ))?; //only to use in var declaration
 
-// //support for code blocks in program
-// block: '{' statement* '}';
+//support for code blocks in program
+block: '{' statement* '}';
 
 //switch statement include 0+ cases and may include one default case
 switchStatement: SWITCH '(' VAR ')' '{' (CASE (('\'' VAR '\'') | NUMBER | BOOL) ':' (('{' statement* '}') | statement*) (BREAK ';')?)* 
@@ -79,21 +80,6 @@ MCOMMENT: '/*' .*? '*/' -> skip; //skip multiline comments in /*..*/ format
 WS: [ \t\r\n]+ -> skip; // skip spaces and tabs  
 
 
-/*----- OPERATORS -----*/
-// POW: '**';
-// MULTI_DIV: '*' | '/' | '%' | '//' ;
-// ADD_SUB: '+' | '-' ;
-// UARITH: '-' | '+';
-// ARITH_OP: POW | ADD_SUB | MULTI_DIV;
-// BIT_OP:  '^' | '|' | '&';
-// SHIFT_OP: '<<' | '>>' ;
-// UBIT: '~';
-// LOGIC_OP: AND | OR | '&&' | '||';
-// ULOGIC: NOT;
-// ASSIGN_OP: (ARITH_OP)? '='; //allows for expressions such as var += 2
-// COMP_OP: '==' | '!=' | '<>';
-// GLT_OP: '>' | '<' | '>=' | '<=';
-
 /*----- RESERVED KEYWORDS -----*/
 //defined before the general word/var form to take 
 //precedence in parsing i.e. the keywords will
@@ -109,8 +95,6 @@ LET: 'let';
 INT: 'int';
 FLOAT: 'float';
 VOID: 'void';
-// TRUE: 'true';
-// FALSE: 'false';
 IOTA: 'iota';
 NULL: 'null' | 'NULL';
 RETURN: 'return';

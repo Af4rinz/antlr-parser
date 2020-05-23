@@ -1,17 +1,10 @@
-/**
- * Project: Language Parser for TLM Project
- * Author: Afarin Zamanian
- * Student ID: 9712762250
- * Version: 1.0
- * Date: May 2020
- */
 grammar stmntGrammar;
 
 program: (preProcess)* (statement | classDef | function)*;
 preProcess: (
 		(VAR '=' REQUIRE VAR)
 		| (VAR '=' FROM VAR REQUIRE VAR)
-	) ';'?;
+	) ';'? NL;
 
 statement:
 	forRange
@@ -25,7 +18,7 @@ statement:
 	| assignStatement
 	;
 
-defStatement: (LET | CONST) (INT | FLOAT | BOOL) '[]'? varAssign (',' varAssign)* ';'?; //variable definition, supporting multi-definitions
+defStatement: (LET | CONST) (INT | FLOAT | BOOL) '[]'? varAssign (',' varAssign)* ';'? NL; //variable definition, supporting multi-definitions
 
 classDef: CLASS VAR (EXTENDS VAR)? implementExp? '{' (defStatement | function)* '}';
 
@@ -37,7 +30,7 @@ ifStatement:
 		(ELSE (('{' statement* '}') | statement))?;
 
 whileLoop: WHILE '(' compExp (logicOp compExp) ')' (('{' statement* '}') | statement);
-doWhileLoop: DO (('{' statement* '}') | statement) WHILE '(' compExp (logicOp compExp) ')' ';'?;
+doWhileLoop: DO (('{' statement* '}') | statement) WHILE '(' compExp (logicOp compExp) ')' ';'? NL;
 
 //switch statement include 0+ cases and may include one default case
 switchStatement: SWITCH '(' VAR ')' '{' (CASE ('\'' (VAR | NUMBER) '\'') ':' (('{' statement* '}') | statement+) (BREAK ';'?)?)* 
@@ -50,10 +43,10 @@ forRange: FOR '(' VAR IN ((VAR|NUMBER)':'(VAR|NUMBER)) STEP (NUMBER|VAR) ')' (('
 forIt: FOR '(' AUTO VAR IN VAR ')' (('{' statement* '}') | statement);
 
 //single inc/decrement expression e.g. --j
-incDecStatement: incDecExp ';'? ;
-assignStatement: VAR assignOp (SCIENTIFIC_NUMBER | genExp) ';'?;
+incDecStatement: incDecExp ';'? NL ;
+assignStatement: VAR assignOp (SCIENTIFIC_NUMBER | genExp) ';'? NL;
 
-
+NL: [\r\n]+;
 LCOMMENT: '#' ~[\r\n]* '\r'? '\n' -> skip; //skip single-line comments starting with #
 MCOMMENT: '/*' .*? '*/' -> skip; //skip multiline comments in /*..*/ format
 WS: [ \t\r\n]+ -> skip; // skip spaces and tabs  
@@ -100,40 +93,40 @@ conditionExp:(uLogicOp)? compExp ( (logicOp | bitOp) (uLogicOp)? compExp)*;
 //defined before the general word/var form to take 
 //precedence in parsing i.e. the keywords will
 //not be recognised as variables/words
-fragment REQUIRE: 'require';
-fragment CONST: 'const';
-fragment FROM: 'from';
-fragment CLASS: 'class';
-fragment EXTENDS: 'extends';
-fragment IMPLEMENTS: 'implements';
-fragment LET: 'let';
-fragment INT: 'int';
-fragment FLOAT: 'float';
-fragment VOID: 'void';
-fragment TRUE: 'true';
-fragment FALSE: 'false';
-fragment IOTA: 'iota';
-fragment NULL: 'null' | 'NULL';
-fragment RETURN: 'return';
-fragment IN: 'in';
-fragment FOR: 'for';
-fragment IF: 'if';
-fragment STEP: 'step';
-fragment AUTO: 'auto';
-fragment WHILE: 'while';
-fragment SWITCH: 'switch';
-fragment CASE: 'case';
-fragment DEFAULT: 'default';
-fragment BREAK: 'break';
-fragment ELSE: 'else';
-fragment DO: 'do';
-fragment NOT: 'not';
-fragment AND: 'and';
-fragment OR: 'or';
-fragment BOOL: 'boolean';
-KEYWORD: REQUIRE | CONST | FROM | CLASS | EXTENDS | IMPLEMENTS | LET | INT | FLOAT | VOID
-| TRUE | FALSE | IOTA | NULL | RETURN | IN | FOR | IF | STEP | AUTO | WHILE | SWITCH |CASE |DEFAULT
-|BREAK | ELSE | DO | NOT | OR | AND | BOOL;
+REQUIRE: 'require';
+CONST: 'const';
+FROM: 'from';
+CLASS: 'class';
+EXTENDS: 'extends';
+IMPLEMENTS: 'implements';
+LET: 'let';
+INT: 'int';
+FLOAT: 'float';
+VOID: 'void';
+TRUE: 'true';
+FALSE: 'false';
+IOTA: 'iota';
+NULL: 'null' | 'NULL';
+RETURN: 'return';
+IN: 'in';
+FOR: 'for';
+IF: 'if';
+STEP: 'step';
+AUTO: 'auto';
+WHILE: 'while';
+SWITCH: 'switch';
+CASE: 'case';
+DEFAULT: 'default';
+BREAK: 'break';
+ELSE: 'else';
+DO: 'do';
+NOT: 'not';
+AND: 'and';
+OR: 'or';
+BOOL: 'boolean';
+// KEYWORD: REQUIRE | CONST | FROM | CLASS | EXTENDS | IMPLEMENTS | LET | INT | FLOAT | VOID
+// | TRUE | FALSE | IOTA | NULL | RETURN | IN | FOR | IF | STEP | AUTO | WHILE | SWITCH |CASE |DEFAULT
+// |BREAK | ELSE | DO | NOT | OR | AND | BOOL;
 
 /*----- GENRAL COMPONENTS -----*/
 fragment UPPERCASE: [A-Z];

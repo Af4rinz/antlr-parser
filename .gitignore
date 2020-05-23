@@ -4,3 +4,7 @@
 *.class
 *.java
 
+.antlr/cache/9199a4088418fa835bc14c39acf52b5b.atn
+statement.atn
+light.css
+codeSampleScrap.txt
