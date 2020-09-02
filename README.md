@@ -3,7 +3,7 @@ ANTLR-based parser for a simple programming language.
 
 ## Run
 
-Run make.bat to compile the grammar, then run "grun tlmProject program -gui".
+Run make.bat to compile the grammar, then run "grun antlr-parser program -gui".
 
 Sample codes and run results are stored in "Samples" folder.
 
